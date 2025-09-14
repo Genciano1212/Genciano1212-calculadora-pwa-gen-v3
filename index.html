@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4e54c8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="calculadora">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Calculadora de Puntos de Temporada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e54c8;
+            --secondary-color: #8f94fb;
+            --accent-color: #ff6b6b;
+            --background-color: #f9f9f9;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --success-color: #20bf6b;
+            --danger-color: #eb3b5a;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--text-color); min-height: 100vh; padding: 20px; transition: all 0.3s ease; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; color: white; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        header p { font-size: 1.1rem; opacity: 0.9; }
+        .card { background-color: var(--card-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 25px; margin-bottom: 25px; transition: transform 0.3s ease; }
+        .card:hover { transform: translateY(-5px); }
+        .card h2 { color: var(--primary-color); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--secondary-color); display: flex; align-items: center; }
+        .card h2 i { margin-right: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color); }
+        input, select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 16px; transition: border-color 0.3s; }
+        input:focus, select:focus { border-color: var(--primary-color); outline: none; }
+        button { background: linear-gradient(to right, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; width: 100%; margin-top: 10px; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+        .result-box { background-color: #f0f8ff; border-left: 5px solid var(--primary-color); padding: 15px; margin-top: 20px; border-radius: 6px; }
+        .result-box h3 { color: var(--primary-color); margin-bottom: 10px; }
+        .result-box p { margin-bottom: 8px; font-size: 1.1rem; }
+        .result-value { font-weight: bold; color: var(--accent-color); }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .progress-container { margin-top: 20px; background-color: #e0e0e0; border-radius: 10px; height: 25px; position: relative; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(to right, var(--secondary-color), var(--accent-color)); border-radius: 10px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+        .info-box { background-color: rgba(255, 255, 255, 0.9); border-radius: var(--border-radius); padding: 15px; margin-bottom: 20px; }
+        .info-box h3 { color: var(--primary-color); margin-bottom: 10px; }
+        .info-box ul { padding-left: 20px; }
+        .info-box li { margin-bottom: 5px; }
+        .tab-container { display: flex; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; background-color: rgba(255, 255, 255, 0.7); border-radius: 6px 6px 0 0; cursor: pointer; margin-right: 5px; font-weight: 600; transition: all 0.3s; }
+        .tab.active { background-color: white; color: var(--primary-color); }
+        .tab-content { display: none; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active { display: block; }
+        .theme-toggle { position: fixed; top: 20px; right: 20px; background-color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--box-shadow); z-index: 100; transition: all 0.3s; }
+        .theme-toggle:hover { transform: scale(1.1); }
+        .dark-mode { --primary-color: #6a5acd; --secondary-color: #9370db; --accent-color: #ff7f50; --background-color: #121212; --card-color: #1e1e1e; --text-color: #e0e0e0; }
+        .dark-mode body { background: linear-gradient(135deg, #2c2c54, #474787); }
+        .dark-mode .card { background-color: var(--card-color); }
+        .dark-mode .result-box { background-color: #2a2a2a; border-left: 5px solid var(--accent-color); }
+        .dark-mode input, .dark-mode select { background-color: #333; color: white; border-color: #555; }
+        .dark-mode .info-box { background-color: rgba(30, 30, 30, 0.9); }
+        .dark-mode .tab { background-color: rgba(50, 50, 50, 0.7); }
+        .dark-mode .tab.active { background-color: var(--card-color); }
+        .footer { text-align: center; margin-top: 30px; color: white; font-size: 0.9rem; opacity: 0.8; }
+        .notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--success-color); color: white; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); opacity: 0; transition: opacity 0.3s ease; z-index: 1000; }
+        .notification.show { opacity: 1; }
+        .success-text { color: var(--success-color); font-weight: bold; }
+        .danger-text { color: var(--danger-color); font-weight: bold; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: white; padding: 30px; border-radius: var(--border-radius); width: 90%; max-width: 400px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); transform: translateY(-20px); transition: transform 0.3s; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="playerModal">
+        <form class="modal-content" name="player-form" method="POST" data-netlify="true">
+            <h2>Bienvenido</h2>
+            <p>Por favor, ingresa tu nombre de jugador.</p>
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="playerNameInput">Nombre de Jugador</label>
+                <input type="text" id="playerNameInput" name="playerName" placeholder="Tu nombre aquí..." required>
+            </div>
+            <button type="submit">Guardar</button>
+        </form>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+    <div class="container">
+        <header>
+            <h1>Calculadora de Puntos de Temporada</h1>
+            <p>Planifica tu estrategia para alcanzar la meta de puntos</p>
+        </header>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="openTab('calculator')">Calculadora</div>
+            <div class="tab" onclick="openTab('config')">Configuración</div>
+            <div class="tab" onclick="openTab('simulator')">Simulador</div>
+        </div>
+        
+        <div id="calculator" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-info-circle"></i> Información del Evento</h2>
+                <div class="info-box">
+                    <ul>
+                        <li><strong>Duración total:</strong> <span id="totalDuration">-</span></li>
+                        <li><strong>Inicio:</strong> <span id="startDate">-</span></li>
+                        <li><strong>Meta:</strong> <span id="targetPoints">-</span></li>
+                        <li><strong>Bonus:</strong> <span id="bonusPoints">-</span></li>
+                        <li><strong>Puntos por batalla:</strong> <span id="pointsPerBattle">-</span></li>
+                        <li><strong>Días restantes:</strong> <span id="remainingDaysInfo">-</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <h2><i class="fas fa-edit"></i> Datos Actuales</h2>
+                    <div class="form-group">
+                        <label for="currentPoints">Puntos actuales</label>
+                        <input type="number" id="currentPoints" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="display: none;">
+                        <label for="remainingDays">Días restantes del evento</label>
+                        <input type="number" id="remainingDays" min="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentDay">Día actual de la semana</label>
+                        <input type="text" id="currentDay" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxBattles">Máximo de batallas que haré</label>
+                        <input type="number" id="maxBattles" min="1" value="20">
+                    </div>
+                    <button onclick="calculateResults()">Calcular</button>
+                </div>
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> Resultados</h2>
+                    <div class="result-box">
+                        <h3>Progreso Actual</h3>
+                        <p>Puntos actuales: <span id="currentPointsDisplay" class="result-value">0</span> / <span id="targetPointsDisplay">0</span></p>
+                        <div class="progress-container"><div id="progressBar" class="progress-bar" style="width: 0%">0%</div></div>
+                        <p>Puntos restantes: <span id="remainingPointsDisplay" class="result-value">0</span></p>
+                    </div>
+                    <div class="result-box">
+                        <h3>Batallas Necesarias</h3>
+                        <p>Batallas mínimas diarias: <span id="neededBattles" class="result-value">-</span></p>
+                        <p>¿Es posible con tu máximo diario? <span id="possibleWithMax" class="result-value">-</span></p>
+                    </div>
+                    <div class="result-box">
+                        <h3>Tiempo Estimado</h3>
+                        <p>Días para completar meta: <span id="estimatedTime" class="result-value">-</span></p>
+                        <p>¿Es alcanzable? <span id="achievable" class="result-value">-</span></p>
+                    </div>
+                    <div class="result-box">
+                        <h3>Dr. Zany</h3>
+                        <p>Domingos restantes: <span id="remainingSundays" class="result-value">-</span></p>
+                        <p>Puntos extra totales: <span id="totalBonusPoints" class="result-value">-</span></p>
+                        <p>Puntos faltantes por batallas: <span id="pointsNeededFromBattles" class="result-value">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="config" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-cog"></i> Configuración de Datos</h2>
+                <div class="form-group"><label for="eventStartDate">Día de inicio de temporada</label><input type="date" id="eventStartDate"></div>
+                <div class="form-group"><label for="eventDuration">Duración de la temporada (días)</label><input type="number" id="eventDuration" min="1" placeholder="Ingresa la duración en días"></div>
+                <div class="form-group"><label for="targetPointsInput">Puntos a alcanzar</label><input type="number" id="targetPointsInput" min="1" placeholder="Ingresa la meta de puntos"></div>
+                <div class="form-group"><label for="drZanyPoints">Puntos que gano con Dr.Zany</label><input type="number" id="drZanyPoints" min="0" placeholder="Ingresa los puntos que ganas cada domingo"></div>
+                <div class="form-group">
+                    <label for="battlePointsInput">Puntos por Batalla</label>
+                    <select id="battlePointsInput">
+                        <option value="3">3 puntos</option><option value="6">6 puntos</option><option value="9">9 puntos</option><option value="12">12 puntos</option><option value="15">15 puntos</option><option value="18">18 puntos</option><option value="21">21 puntos</option><option value="24">24 puntos</option><option value="30">30 puntos</option><option value="33">33 puntos</option><option value="36">36 puntos</option>
+                    </select>
+                </div>
+                <button onclick="saveConfig()">Guardar Configuración</button>
+                <button onclick="resetAll()" style="background: linear-gradient(to right, #eb3b5a, #fc5c65);">Reiniciar Todo</button>
+            </div>
+        </div>
+        
+        <div id="simulator" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-calculator"></i> Simulador de Puntos</h2>
+                <div class="form-group"><label for="dailyBattles">Batallas diarias a realizar:</label><input type="number" id="dailyBattles" min="1" value="10"></div>
+                <div class="form-group">
+                    <label for="simBattlePoints">Puntos que consigo por batallas:</label>
+                    <select id="simBattlePoints">
+                        <option value="3">3 puntos</option><option value="6">6 puntos</option><option value="9">9 puntos</option><option value="12">12 puntos</option><option value="15">15 puntos</option><option value="18">18 puntos</option><option value="21">21 puntos</option><option value="24">24 puntos</option><option value="30">30 puntos</option><option value="33">33 puntos</option><option value="36">36 puntos</option>
+                    </select>
+                </div>
+                <button onclick="runSimulation()">Ejecutar Simulación</button>
+                <div class="result-box">
+                    <h3>Resultados de la Simulación</h3>
+                    <p>Puntos actuales: <span id="simCurrentPoints" class="result-value">0</span></p>
+                    <p>Puntos totales al finalizar el evento: <span id="simTotalPoints" class="result-value">-</span></p>
+                    <p>¿Alcanzarás la meta? <span id="simReachGoal" class="result-value">-</span></p>
+                    <div class="progress-container"><div id="simProgressBar" class="progress-bar" style="width: 0%">0%</div></div>
+                    <p>Porcentaje que alcanzaré: <span id="simPercentage" class="result-value">-</span></p>
+                    <p>Tiempo para Completar Meta (días): <span id="simTimeToComplete" class="result-value">-</span></p>
+                    <p>Días necesarios: <span id="simDaysNeeded" class="result-value">-</span></p>
+                    <p>Terminarías <span id="simFinishBefore" class="result-value">-</span> días antes del fin del evento</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Derechos reservados : creado por Genciano</p>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Configuración guardada correctamente</div>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('Service Worker registrado con éxito:', registration))
+                    .catch(error => console.log('Error al registrar Service Worker:', error));
+            });
+        }
+    </script>
+    
+    <script>
+        let config = { eventStartDate: '', eventDuration: 0, targetPoints: 0, drZanyPoints: 0, battlePoints: 3 };
+        let playerName = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            updateCurrentDay();
+            showPlayerModal();
+
+            const playerForm = document.querySelector('form[name="player-form"]');
+            if(playerForm) {
+                playerForm.addEventListener('submit', handleFormSubmission);
+            }
+            
+            setInterval(updateCurrentDay, 60000);
+            setInterval(updateRemainingDays, 3600000);
+            
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        });
+        
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab');
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+                tabContents[i].classList.remove('active');
+            }
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`.tab[onclick="openTab('${tabName}')"]`).classList.add('active');
+        }
+        
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark-mode'));
+        }
+
+        function showPlayerModal() {
+            playerName = localStorage.getItem('playerName');
+            if (!playerName) {
+                document.getElementById('playerModal').classList.add('show');
+            }
+        }
+
+        function handleFormSubmission(event) {
+            event.preventDefault();
+            const input = document.getElementById('playerNameInput');
+            const name = input.value.trim();
+            
+            if (name) {
+                playerName = name;
+                localStorage.setItem('playerName', playerName);
+                
+                const formData = new FormData(event.target);
+                const netlifyData = new URLSearchParams(formData).toString();
+
+                fetch('/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: netlifyData
+                }).catch(error => console.error('Error submitting form to Netlify:', error));
+
+                document.getElementById('playerModal').classList.remove('show');
+            } else {
+                alert('Por favor ingresa un nombre.');
+            }
+        }
+        
+        function saveConfig() {
+            config.eventStartDate = document.getElementById('eventStartDate').value;
+            config.eventDuration = parseInt(document.getElementById('eventDuration').value) || 0;
+            config.targetPoints = parseInt(document.getElementById('targetPointsInput').value) || 0;
+            config.drZanyPoints = parseInt(document.getElementById('drZanyPoints').value) || 0;
+            config.battlePoints = parseInt(document.getElementById('battlePointsInput').value) || 3;
+            localStorage.setItem('seasonConfig', JSON.stringify(config));
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+            updateEventInfo();
+        }
+        
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('seasonConfig');
+            if (savedConfig) {
+                config = JSON.parse(savedConfig);
+                document.getElementById('eventStartDate').value = config.eventStartDate;
+                document.getElementById('eventDuration').value = config.eventDuration;
+                document.getElementById('targetPointsInput').value = config.targetPoints;
+                document.getElementById('drZanyPoints').value = config.drZanyPoints;
+                document.getElementById('battlePointsInput').value = config.battlePoints;
+                updateEventInfo();
+            }
+        }
+        
+        function updateEventInfo() {
+            if (!config.eventStartDate || !config.eventDuration) {
+                document.getElementById('totalDuration').textContent = '-';
+                document.getElementById('startDate').textContent = '-';
+                document.getElementById('targetPoints').textContent = '-';
+                document.getElementById('bonusPoints').textContent = '-';
+                document.getElementById('pointsPerBattle').textContent = '-';
+                document.getElementById('targetPointsDisplay').textContent = '0';
+                document.getElementById('remainingDays').value = '';
+                document.getElementById('remainingDaysInfo').textContent = '-';
+                return;
+            }
+            const startDate = new Date(config.eventStartDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + config.eventDuration);
+            const today = new Date();
+            const remainingDays = Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)));
+            document.getElementById('totalDuration').textContent = `${config.eventDuration} días`;
+            document.getElementById('startDate').textContent = formatDate(startDate);
+            document.getElementById('targetPoints').textContent = config.targetPoints.toLocaleString();
+            document.getElementById('bonusPoints').textContent = config.drZanyPoints.toLocaleString();
+            document.getElementById('pointsPerBattle').textContent = config.battlePoints;
+            document.getElementById('targetPointsDisplay').textContent = config.targetPoints.toLocaleString();
+            document.getElementById('remainingDays').value = remainingDays;
+            document.getElementById('remainingDaysInfo').textContent = remainingDays;
+            updateCurrentDay();
+        }
+        
+        function updateCurrentDay() {
+            const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            document.getElementById('currentDay').value = new Date().toLocaleDateString('es-ES', { weekday: 'long' });
+        }
+        
+        function updateRemainingDays() {
+            if (!config.eventStartDate || !config.eventDuration) return;
+            const startDate = new Date(config.eventStartDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + config.eventDuration);
+            const today = new Date();
+            const remainingDays = Math.max(0, Math.ceil((endDate - today) / (1000 * 60 * 60 * 24)));
+            document.getElementById('remainingDays').value = remainingDays;
+            document.getElementById('remainingDaysInfo').textContent = remainingDays;
+        }
+        
+        function formatDate(date) {
+            return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        
+        function calculateResults() {
+            const currentPoints = parseInt(document.getElementById('currentPoints').value) || 0;
+            const maxBattles = parseInt(document.getElementById('maxBattles').value) || 0;
+            const remainingDays = parseInt(document.getElementById('remainingDays').value) || 0;
+            if (!config.targetPoints || remainingDays <= 0) return;
+            const progressPercentage = Math.min(100, (currentPoints / config.targetPoints) * 100);
+            const remainingPoints = Math.max(0, config.targetPoints - currentPoints);
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            document.getElementById('progressBar').textContent = `${progressPercentage.toFixed(1)}%`;
+            document.getElementById('currentPointsDisplay').textContent = currentPoints.toLocaleString();
+            document.getElementById('remainingPointsDisplay').textContent = remainingPoints.toLocaleString();
+            const sundaysRemaining = countSundays(new Date(), remainingDays);
+            const pointsFromSundays = sundaysRemaining * config.drZanyPoints;
+            const pointsNeededFromBattles = Math.max(0, remainingPoints - pointsFromSundays);
+            document.getElementById('remainingSundays').textContent = sundaysRemaining;
+            document.getElementById('totalBonusPoints').textContent = pointsFromSundays.toLocaleString();
+            document.getElementById('pointsNeededFromBattles').textContent = pointsNeededFromBattles.toLocaleString();
+            const battlesNeeded = Math.ceil(pointsNeededFromBattles / config.battlePoints);
+            const dailyBattlesNeeded = Math.ceil(battlesNeeded / remainingDays);
+            document.getElementById('neededBattles').textContent = dailyBattlesNeeded;
+            if (maxBattles > 0) {
+                const possibleWithMax = dailyBattlesNeeded <= maxBattles;
+                document.getElementById('possibleWithMax').textContent = possibleWithMax ? 'Sí' : 'No';
+                document.getElementById('possibleWithMax').className = possibleWithMax ? 'result-value success-text' : 'result-value danger-text';
+                const daysNeeded = Math.ceil(battlesNeeded / maxBattles);
+                const achievable = daysNeeded <= remainingDays;
+                document.getElementById('estimatedTime').textContent = daysNeeded;
+                document.getElementById('achievable').textContent = achievable ? 'Sí' : 'No';
+                document.getElementById('achievable').className = achievable ? 'result-value success-text' : 'result-value danger-text';
+            } else {
+                document.getElementById('possibleWithMax').textContent = 'Ingresa tu máximo de batallas';
+                document.getElementById('possibleWithMax').className = 'result-value';
+                document.getElementById('estimatedTime').textContent = '-';
+                document.getElementById('achievable').textContent = '-';
+                document.getElementById('achievable').className = 'result-value';
+            }
+        }
+        
+        function countSundays(startDate, days) {
+            let count = 0;
+            const currentDate = new Date(startDate);
+            for (let i = 0; i < days; i++) {
+                if (currentDate.getDay() === 0) count++;
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            return count;
+        }
+        
+        function runSimulation() {
+            const dailyBattles = parseInt(document.getElementById('dailyBattles').value) || 0;
+            const battlePoints = parseInt(document.getElementById('simBattlePoints').value) || 0;
+            const currentPoints = parseInt(document.getElementById('currentPoints').value) || 0;
+            const remainingDays = parseInt(document.getElementById('remainingDays').value) || 0;
+            if (!config.targetPoints || remainingDays <= 0 || dailyBattles <= 0 || battlePoints <= 0) {
+                alert('Por favor, completa todos los campos para ejecutar la simulación');
+                return;
+            }
+            const sundaysRemaining = countSundays(new Date(), remainingDays);
+            const pointsFromSundays = sundaysRemaining * config.drZanyPoints;
+            const pointsFromBattles = dailyBattles * battlePoints * remainingDays;
+            const totalPoints = currentPoints + pointsFromSundays + pointsFromBattles;
+            document.getElementById('simCurrentPoints').textContent = currentPoints.toLocaleString();
+            document.getElementById('simTotalPoints').textContent = totalPoints.toLocaleString();
+            const reachGoal = totalPoints >= config.targetPoints;
+            document.getElementById('simReachGoal').textContent = reachGoal ? 'Sí' : 'No';
+            document.getElementById('simReachGoal').className = reachGoal ? 'result-value success-text' : 'result-value danger-text';
+            const percentage = Math.min(100, (totalPoints / config.targetPoints) * 100);
+            document.getElementById('simPercentage').textContent = `${percentage.toFixed(1)}%`;
+            document.getElementById('simProgressBar').style.width = `${percentage}%`;
+            document.getElementById('simProgressBar').textContent = `${percentage.toFixed(1)}%`;
+            if (reachGoal) {
+                const pointsNeeded = Math.max(0, config.targetPoints - currentPoints - pointsFromSundays);
+                const daysNeeded = Math.ceil(pointsNeeded / (dailyBattles * battlePoints));
+                document.getElementById('simTimeToComplete').textContent = daysNeeded;
+                document.getElementById('simDaysNeeded').textContent = daysNeeded;
+                const finishBefore = remainingDays - daysNeeded;
+                document.getElementById('simFinishBefore').textContent = finishBefore;
+            } else {
+                document.getElementById('simTimeToComplete').textContent = 'No se alcanzará la meta';
+                document.getElementById('simDaysNeeded').textContent = 'No se alcanzará la meta';
+                document.getElementById('simFinishBefore').textContent = 'No se alcanzará la meta';
+            }
+        }
+        
+        function resetAll() {
+            if (confirm('¿Estás seguro de que quieres reiniciar todos los datos? Esta acción no se puede deshacer.')) {
+                config = { eventStartDate: '', eventDuration: 0, targetPoints: 0, drZanyPoints: 0, battlePoints: 3 };
+                localStorage.removeItem('seasonConfig');
+                localStorage.removeItem('playerName');
+                document.getElementById('eventStartDate').value = '';
+                document.getElementById('eventDuration').value = '';
+                document.getElementById('targetPointsInput').value = '';
+                document.getElementById('drZanyPoints').value = '';
+                document.getElementById('battlePointsInput').value = '3';
+                document.getElementById('currentPoints').value = '0';
+                document.getElementById('maxBattles').value = '20';
+                document.getElementById('remainingDays').value = '';
+                document.getElementById('dailyBattles').value = '10';
+                document.getElementById('simBattlePoints').value = '3';
+                updateEventInfo();
+                const notification = document.getElementById('notification');
+                notification.textContent = 'Todos los datos han sido reiniciados';
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    location.reload();
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
